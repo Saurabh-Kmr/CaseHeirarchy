@@ -1,7 +1,7 @@
 import { LightningElement,wire,api,track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import getChildrenCases from '@salesforce/apex/getChildrenCases.getChildrenCasesParent';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getChildrenCasesParent from '@salesforce/apex/CaseHeirarchyController.getChildrenCasesParent';
 import NAME_FIELD from '@salesforce/schema/Case.CaseNumber';
 import SUBJECT_FIELD from '@salesforce/schema/Case.Subject';
 import ORIGIN_FIELD from '@salesforce/schema/Case.Origin';
@@ -25,7 +25,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 	gridDataLength
     numChildCase 
     
-    @wire(getChildrenCases,{recordID:'$recordId'})
+    @wire(getChildrenCasesParent,{recordID:'$recordId'})
     childCases({data,error}){
         if(error){
             this.error = error;
@@ -62,7 +62,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
         
 			this.isLoading = true;
         try{    
-			let result = await getChildrenCases({ recordID: rowName })
+			let result = await getChildrenCasesParent({ recordID: rowName })
 			console.log(result);
 		    if (result && result.length > 0) {
 				const newChildren = result.map((child) => ({
