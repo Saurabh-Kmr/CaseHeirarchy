@@ -1,6 +1,7 @@
 import { LightningElement,wire,api,track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import {refreshApex} from '@salesforce/apex';
 import getChildrenCasesParent from '@salesforce/apex/CaseHeirarchyController.getChildrenCasesParent';
 import NAME_FIELD from '@salesforce/schema/Case.CaseNumber';
 import SUBJECT_FIELD from '@salesforce/schema/Case.Subject';
@@ -16,14 +17,16 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 
     @api
     recordId;
-    
+    @api
+    childrecordID;
+    gridDataRaw;
+    childDataRaw;
     gridColumns = COLS;
 	isLoading = true;
 	@track
 	gridData;
-    error
-	gridDataLength
-    numChildCase 
+    error;
+    numChildCase;
     
     @wire(getChildrenCasesParent,{recordID:'$recordId'})
     childCases({data,error}){
@@ -39,6 +42,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
         }
         else if (data){
             this.error = undefined;
+            this.gridDataRaw=data;
             this.gridData = data.map((caseItem) => ({
 				_children: [],
 				...caseItem,
@@ -53,19 +57,61 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 
     }
     
+    @wire(getChildrenCasesParent,{recordID:'$childrecordID'})
+    grandchildCases({data,error}){
+        if(error){
+					this.dispatchEvent(
+						new ShowToastEvent({
+							title: "Error Loading Children cases",
+							message: error + " " + error?.message,
+							variant: "error"
+						})
+					);
+        }
+        else if(data && data.length > 0){
+                this.childDataRaw=data;
+				const newChildren = data.map((child) => ({
+							_children: [],
+							...child
+						}));
+                console.log('Children',JSON.stringify(newChildren));
+				this.gridData = this.getNewDataWithChildren(
+							this.childrecordID,
+							this.gridData,
+							newChildren
+						);
+                console.log('grid',JSON.stringify(this.gridData))
+		} 
+        else{
+			this.dispatchEvent(
+				new ShowToastEvent({
+					title: "No children",
+					message: "No children exists for the selected case",
+					variant: "warning"
+				})
+			);
+		}
+			
+            
+
+    }
+
     async handleOnToggle(event) {
 		console.log(event.detail.name);
 		console.log(event.detail.hasChildrenContent);
-		console.log(event.detail.isExpanded);
+		console.log(JSON.stringify(event.detail));
 		const rowName = event.detail.name;
 		if (!event.detail.hasChildrenContent && event.detail.isExpanded) {
         
 			this.isLoading = true;
-        try{    
-			let result = await getChildrenCasesParent({ recordID: rowName })
+        try{  
+            this.childrecordID =  rowName;
+            await refreshApex(this.gridDataRaw);
+            await refreshApex(this.childDataRaw);
+            console.log('selected',this.childrecordID);
+			/*let result = await getChildrenCasesParent({ recordID: rowName })
 			console.log(result);
 			if (result && result.length > 0) {
-				console.log('result',JSON.stringify(result));
 				const newChildren = result.map((child) => ({
 							_children: [],
 							...child
@@ -82,11 +128,11 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 								title: "No children",
 								message: "No children exists for the selected case",
 								variant: "warning"
-							})
-						);
-				}
+						    )
+				        );
+			}*/
 			
-            }
+        }
 		catch(error) {
 					console.log("Error loading child cases", error);
 					this.dispatchEvent(
