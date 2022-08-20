@@ -119,9 +119,11 @@ private class CaseHeirarchyControllerTest {
      @IsTest
     static void caseNotAccessible(){
         Boolean didCatchProperException = false;
+        
         Test.startTest();
         try{
-        Profile customUserProfile = [
+            CaseHeirarchyController.controllerException = new DmlException();
+            Profile customUserProfile = [
             SELECT Name, Id
             FROM Profile
             WHERE
@@ -157,7 +159,8 @@ private class CaseHeirarchyControllerTest {
                    
           //  System.assertEquals(0, result.size(),'Expected results to be 2');
         }
-        }   
+    }
+           
         catch(Exception e){
             System.debug(e.getMessage());
             //if(e.getMessage().containsIgnoreCase(
