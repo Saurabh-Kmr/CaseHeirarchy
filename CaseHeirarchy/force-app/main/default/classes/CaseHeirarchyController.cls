@@ -1,12 +1,15 @@
 public with sharing class CaseHeirarchyController {
     
-    public static boolean queryExceptionBreaker =false;
-    public static boolean throwException = false;
+    class CaseHeirarchyControllerException extends Exception{}
 
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     @AuraEnabled(cacheable=true)
     public static List<Case> getChildrenCasesParent(ID recordID){
         
-        try{              
+        try{    
+                if(!recordID.getSobjectType().getDescribe().isAccessible()){
+                    throw new CaseHeirarchyControllerException('Case object is not accesible to user');
+                }          
                 List<Case> cases = [SELECT id,CaseNumber,subject,origin from Case where ParentId =:recordID order by CaseNumber asc];
                 SObjectAccessDecision securityDecision = Security.stripInaccessible(AccessType.READABLE,cases);
                 return  (List<Case>)securityDecision.getRecords();             

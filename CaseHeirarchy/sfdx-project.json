@@ -2,7 +2,10 @@
   "packageDirectories": [
     {
       "path": "force-app",
-      "default": true
+      "default": true,
+      "package": "CaseHeirarchy",
+            "versionName": "Summer '22",
+            "versionNumber": "55.0.0.NEXT"
     }
   ],
   "name": "CaseHeirarchy",

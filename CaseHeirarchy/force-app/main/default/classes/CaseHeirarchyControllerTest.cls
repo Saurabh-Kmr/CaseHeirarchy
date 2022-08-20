@@ -35,6 +35,7 @@ private class CaseHeirarchyControllerTest {
 
     @IsTest
     static void getChildCasesPostiveNoChildCases(){
+        Test.startTest();
         Profile standardUserProfile = [
             SELECT Name, Id
             FROM Profile
@@ -63,18 +64,19 @@ private class CaseHeirarchyControllerTest {
             CaseHeirarchyControllerTest.createCases(5);
         }
         System.runAs(testUser) {
-            Test.startTest();
+            
             Id id = [SELECT Id from Case LIMIT 1].Id;
             List<Case> result = CaseHeirarchyController.getChildrenCasesParent(id);
-            Test.stopTest();
+            
             System.assertEquals(0, result.size(),'Expected results to be 0');
         }
-
+        Test.stopTest();
 
     }
 
     @IsTest
     static void getChildCasesPostiveSingleChildCases(){
+        Test.startTest();
         Profile standardUserProfile = [
             SELECT Name, Id
             FROM Profile
@@ -104,18 +106,20 @@ private class CaseHeirarchyControllerTest {
             CaseHeirarchyControllerTest.createChildCases(id,2);
         }
         System.runAs(testUser) {
-            Test.startTest();
+            
             Id id = [SELECT Id from Case order by createddate ASC LIMIT 1].Id;
             List<Case> result = CaseHeirarchyController.getChildrenCasesParent(id);
-            Test.stopTest();
+            
             System.assertEquals(2, result.size(),'Expected results to be 2');
         }
-
+        Test.stopTest();
 
     }
 
      @IsTest
     static void caseNotAccessible(){
+        Boolean didCatchProperException = false;
+        Test.startTest();
         try{
         Profile customUserProfile = [
             SELECT Name, Id
@@ -146,18 +150,26 @@ private class CaseHeirarchyControllerTest {
             CaseHeirarchyControllerTest.createChildCases(id,2);
         }
         System.runAs(testUser) {
-            Test.startTest();
+           
             Id id = [SELECT Id from Case order by createddate ASC LIMIT 1].Id;
         
             List<Case> result = CaseHeirarchyController.getChildrenCasesParent(id);
-                    Test.stopTest();
+                   
           //  System.assertEquals(0, result.size(),'Expected results to be 2');
         }
         }   
         catch(Exception e){
             System.debug(e.getMessage());
-            System.assertEquals(true,e.getMessage().contains('getChildrenCases'),'Expected error to be encountered');
+            //if(e.getMessage().containsIgnoreCase(
+              //  'Failed to query the Contact. Error is: Case object is not accesible to user'))
+              didCatchProperException=true;
+            
     } 
+    Test.stopTest();
+    System.assert(
+            didCatchProperException,
+            'Expected to have caught exception thrown by inaccessible object'
+        );
     }
     
 
