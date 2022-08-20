@@ -64,7 +64,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
         try{    
 			let result = await getChildrenCasesParent({ recordID: rowName })
 			console.log(result);
-		    if (result && result.length > 0) {
+			if (result && result.length > 0) {
 				const newChildren = result.map((child) => ({
 							_children: [],
 							...child
@@ -76,7 +76,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 						);
 			} 
             else{
-				 this.dispatchEvent(
+				this.dispatchEvent(
 							new ShowToastEvent({
 								title: "No children",
 								message: "No children exists for the selected case",
@@ -86,7 +86,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 				}
 			
             }
-        	catch(error) {
+		catch(error) {
 					console.log("Error loading child cases", error);
 					this.dispatchEvent(
 						new ShowToastEvent({
@@ -99,28 +99,24 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 		finally {
 					this.isLoading = false;
 				}
-	    }
+	}
     }
 
     handleRowAction(event){
         const action = event.detail.action;
-        const row = event.detail.row;
-        console.log(event.detail.row);
+        //const row = event.detail.row;
+        //console.log('row',JSON.stringify(event.detail));
         //console.log(event.detail.action.name)
         try{
-            //switch (action.name) {
-             //   case 'gotoCase':
+            if(action.subTypeAttributes.name==='gotoCase') {
                     this[NavigationMixin.Navigate]({
                         type: "standard__recordPage",
                         attributes: {
                             recordId: event.detail.row.Id,
                             actionName: "view"
                         }
-                    });//.then((url) => {
-                    //    window.open(url, "_blank");
-                  //  });
-               // break;
-           // }
+                    });
+				}
         }
         catch(error) {
 					console.log("Error loading child cases", error);
@@ -132,9 +128,6 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 						})
 					);
 		}
-        finally{
-
-        }
 
     }
 
