@@ -1,4 +1,4 @@
-import { LightningElement,wire,api } from 'lwc';
+import { LightningElement,wire,api,track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getChildrenCases from '@salesforce/apex/getChildrenCases.getChildrenCasesParent';
@@ -19,15 +19,23 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
     
     gridColumns = COLS;
 	isLoading = true;
-	gridData = [];
+	@track
+	gridData;
     error
-    numChildCase
+	gridDataLength
+    numChildCase 
     
     @wire(getChildrenCases,{recordID:'$recordId'})
     childCases({data,error}){
         if(error){
             this.error = error;
             this.gridData= undefined;
+			console.log(this.error)
+			console.log('Grid',JSON.stringify(this.gridData));
+			
+			this.numChildCase= false;
+			console.log('Gridl',this.numChildCase);
+
         }
         else if (data){
             this.error = undefined;
@@ -35,8 +43,11 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 				_children: [],
 				...caseItem,
 			}));
-			console.log(JSON.stringify(this.gridData));
-            this.numChildCase=this.gridData.length > 0?false:true;
+			console.log('Grid',JSON.stringify(this.gridData.length));
+            this.numChildCase=(this.gridData.length=== 0)?true:false ;
+			if(this.gridData.length ===0){
+					this.gridData =undefined;
+			}
             this.isLoading = false;
         }
 
@@ -47,7 +58,6 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 		console.log(event.detail.hasChildrenContent);
 		console.log(event.detail.isExpanded);
 		const rowName = event.detail.name;
-    
 		if (!event.detail.hasChildrenContent && event.detail.isExpanded) {
         
 			this.isLoading = true;
@@ -127,7 +137,9 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
         }
 
     }
-   
+
+
+    
 
 	getNewDataWithChildren(rowName, data, children) {
 		return data.map((row) => {
@@ -141,6 +153,7 @@ export default class CaseHeirarchy extends NavigationMixin(LightningElement) {
 			}
 
 			if (row.Id === rowName) {
+				row.trendIcon='standard:flow'
 				row._children = children;
 			} else if (hasChildrenContent) {
 				this.getNewDataWithChildren(rowName, row._children, children);
