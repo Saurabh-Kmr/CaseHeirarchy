@@ -13,6 +13,7 @@ public with sharing class CaseHeirarchyController {
             if(Test.isRunningTest() && CaseHeirarchyController.controllerException != null) {
                 throw CaseHeirarchyController.controllerException;
             }
+
                 List<Case> cases = [SELECT id,CaseNumber,subject,origin from Case where ParentId =:recordID order by CaseNumber asc];
                 SObjectAccessDecision securityDecision = Security.stripInaccessible(AccessType.READABLE,cases);
                 return  (List<Case>)securityDecision.getRecords();             
